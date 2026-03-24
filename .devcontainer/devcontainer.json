@@ -1,0 +1,14 @@
+{
+  "name": "AI Jail Dev",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "ai-jail",
+  "workspaceFolder": "/workspace",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp"
+      ]
+    }
+  }
+}

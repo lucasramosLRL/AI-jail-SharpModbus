@@ -1,0 +1,47 @@
+services:
+  ai-jail:
+    image: ai-jail-dotnet
+    container_name: ai_jail
+
+    tty: true
+    stdin_open: true
+
+    # 🔐 SEGURANÇA
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+
+    # 🔌 (opcional) sem internet
+    #network_mode: "none"
+
+    # 🧠 limites
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
+
+    # 📁 workspace controlado
+    volumes:
+      - ./workspace:/workspace:rw
+      - aiuser_home:/home/aiuser
+    
+    # Environment
+    environment:
+      - HOME=/home/aiuser
+      - DOTNET_CLI_HOME=/tmp
+      - NUGET_PACKAGES=/tmp/nuget
+
+    # ⚠️ necessário pro sistema funcionar mesmo read-only
+    tmpfs:
+      - /tmp
+      - /run
+      - /home/aiuser/.dotnet
+      - /home/aiuser/.nuget
+      - /home/aiuser/.config
+
+volumes:
+    aiuser_home:
