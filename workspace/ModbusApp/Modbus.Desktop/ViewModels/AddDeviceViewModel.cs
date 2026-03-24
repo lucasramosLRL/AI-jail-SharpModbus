@@ -8,6 +8,7 @@ using Modbus.Core.Services.Scanning;
 using System;
 using System.Collections.ObjectModel;
 using System.IO.Ports;
+using Modbus.Desktop.Infrastructure;
 using System.Threading;
 using System.Threading.Tasks;
 using Parity = Modbus.Core.Domain.Enums.Parity;
@@ -40,7 +41,17 @@ public partial class AddDeviceViewModel : ObservableObject
 
     // ── RTU parameters ────────────────────────────────────────────────────────
 
-    public string[] AvailablePorts { get; } = SerialPort.GetPortNames();
+    public ObservableCollection<string> AvailablePorts { get; } = new(SerialPortScanner.GetPortNames());
+
+    [RelayCommand]
+    private void RefreshPorts()
+    {
+        AvailablePorts.Clear();
+        foreach (var p in SerialPortScanner.GetPortNames())
+            AvailablePorts.Add(p);
+        if (SelectedPort is null && AvailablePorts.Count > 0)
+            SelectedPort = AvailablePorts[0];
+    }
     public int[] AvailableBaudRates { get; } = { 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200 };
     public Parity[] AvailableParities { get; } = (Parity[])Enum.GetValues(typeof(Parity));
     public StopBits[] AvailableStopBits { get; } = (StopBits[])Enum.GetValues(typeof(StopBits));
@@ -309,7 +320,7 @@ public partial class AddDeviceViewModel : ObservableObject
         _parent = parent;
 
         // Pre-select first available port
-        if (AvailablePorts.Length > 0)
+        if (AvailablePorts.Count > 0)
             SelectedPort = AvailablePorts[0];
     }
 }
