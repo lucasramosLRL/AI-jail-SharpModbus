@@ -8,6 +8,7 @@ using Modbus.Core.Persistence;
 using Modbus.Core.Persistence.Repositories;
 using Modbus.Core.Polling;
 using Modbus.Core.Services;
+using Modbus.Core.Services.Scanning;
 using Modbus.Desktop.ViewModels;
 using Modbus.Desktop.Views;
 using System;
@@ -29,6 +30,9 @@ public partial class App : Application
 
         using var db = Services.GetRequiredService<ModbusDbContext>();
         db.Database.EnsureCreated();
+
+        var seeder = new DeviceModelSeeder(Services.GetRequiredService<IDeviceModelRepository>());
+        seeder.SeedAsync().GetAwaiter().GetResult();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -62,6 +66,7 @@ public partial class App : Application
         services.AddTransient<IDeviceModelRepository, DeviceModelRepository>();
         services.AddTransient<IRegisterValueRepository, RegisterValueRepository>();
 
+        services.AddTransient<IDeviceScanService, DeviceScanService>();
         services.AddSingleton<IModbusServiceFactory, ModbusServiceFactory>();
         services.AddSingleton<IPollingEngine>(sp =>
             new PollingEngine(

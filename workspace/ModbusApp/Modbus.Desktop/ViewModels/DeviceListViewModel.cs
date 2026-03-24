@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Modbus.Core.Domain.Repositories;
 using Modbus.Core.Polling;
+using Modbus.Core.Services.Scanning;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -12,8 +13,10 @@ namespace Modbus.Desktop.ViewModels;
 public partial class DeviceListViewModel : ObservableObject
 {
     private readonly IDeviceRepository _deviceRepository;
+    private readonly IDeviceModelRepository _deviceModelRepository;
     private readonly IRegisterValueRepository _registerValueRepository;
     private readonly IPollingEngine _pollingEngine;
+    private readonly IDeviceScanService _scanService;
     private bool _pollingStarted;
 
     public event EventHandler<object>? NavigationRequested;
@@ -25,12 +28,16 @@ public partial class DeviceListViewModel : ObservableObject
 
     public DeviceListViewModel(
         IDeviceRepository deviceRepository,
+        IDeviceModelRepository deviceModelRepository,
         IRegisterValueRepository registerValueRepository,
-        IPollingEngine pollingEngine)
+        IPollingEngine pollingEngine,
+        IDeviceScanService scanService)
     {
         _deviceRepository = deviceRepository;
+        _deviceModelRepository = deviceModelRepository;
         _registerValueRepository = registerValueRepository;
         _pollingEngine = pollingEngine;
+        _scanService = scanService;
 
         _pollingEngine.RegisterValuesUpdated += OnRegisterValuesUpdated;
         _pollingEngine.DeviceConnectionFailed += OnDeviceConnectionFailed;
@@ -39,7 +46,7 @@ public partial class DeviceListViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task LoadDevicesAsync()
+    internal async Task LoadDevicesAsync()
     {
         IsLoading = true;
         Devices.Clear();
@@ -71,6 +78,13 @@ public partial class DeviceListViewModel : ObservableObject
         var detail = new DeviceDetailViewModel(device, _registerValueRepository, this);
         _ = detail.LoadValuesAsync();
         NavigationRequested?.Invoke(this, detail);
+    }
+
+    [RelayCommand]
+    private void OpenAddDevice()
+    {
+        var vm = new AddDeviceViewModel(_scanService, _deviceRepository, _deviceModelRepository, this);
+        NavigationRequested?.Invoke(this, vm);
     }
 
     internal void NavigateBack() => NavigationRequested?.Invoke(this, this);

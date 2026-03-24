@@ -1,5 +1,6 @@
 services:
   ai-jail:
+    build: .
     image: ai-jail-dotnet
     container_name: ai_jail
 
